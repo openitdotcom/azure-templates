@@ -75,16 +75,16 @@ else {
 
     # Install application using specified arguments passed with the installer file as configured in the configuration section
     # Waits for installation to finish before continuing
-    # try {
+    try {
         
-    #     Start-Process msiexec.exe -Wait -ArgumentList "/I $Env:Temp\$Container\$ApplicationSetupFile SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
-    #     Write-Output 'Application installation completed.'
-    # }
-    # catch {
-    #     Write-Error "Failed to install application. Exception: $($_.Exception.Message)"
-    # }
+        Start-Process msiexec.exe -Wait -ArgumentList "/I $Env:Temp\$Container\$ApplicationSetupFile SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
+        Write-Output 'Application installation completed.'
+    }
+    catch {
+        Write-Error "Failed to install application. Exception: $($_.Exception.Message)"
+    }
 
-    # # Clean-up installation files
-    # Remove-Item "$Env:Temp\$Container" -Force -Recurse
+    # Clean-up installation files
+    Remove-Item "$Env:Temp\$Container" -Force -Recurse
     
 }
