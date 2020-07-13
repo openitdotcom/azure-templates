@@ -155,7 +155,7 @@
         "openitInstallation": {
             "script": {
                 "filename": "Configure_OpeniTClient.ps1",
-                "location": "https://raw.githubusercontent.com/jhonvirtucio/openit-ARMy/master/Configure_OpeniTClient.ps1"
+                "location": "https://raw.githubusercontent.com/openitdotcom/azure-templates/master/openitclient-windows/scripts/Configure_OpeniTClient.ps1?token=AJKNMNN65I2WYYKPVV6GS527CVMRK"
             }
         },
         "imageReference": {
