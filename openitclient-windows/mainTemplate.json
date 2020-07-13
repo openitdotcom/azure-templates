@@ -142,10 +142,7 @@
         }
     },
     "variables": {
-        "vName": {
-            "fake": "[concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id))]",
-            "real": "[parameters('virtualMachineName')]"
-        },
+        "fakeVMName": "[concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id))]",
         "nicName": "[concat(parameters('virtualMachineName'), '-nic', uniqueString(resourceGroup().id))]",
         "vnetId": {
             "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
@@ -293,7 +290,7 @@
             "condition": "[equals(parameters('existingOrNewVM'),'new')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
-            "name": "[if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('vName').fake)]",
+            "name": "[if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('fakeVMName'))]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
@@ -343,7 +340,7 @@
             "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('vName').fake))]"
+                "[resourceId('Microsoft.Compute/virtualMachines', if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('fakeVMName')))]"
             ],
             "tags": {
                 "displayName": "config-openit"
