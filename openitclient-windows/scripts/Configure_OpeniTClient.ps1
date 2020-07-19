@@ -30,7 +30,7 @@ function Get-Program-Version {
 
 $currentVersion = Get-Program-Version "Open iT Client" 
 
-if ($currentVersion = $ApplicationVersion) {
+if ($currentVersion -eq $ApplicationVersion) {
     New-Item -Path  $Env:Temp -Name "openit_install.log" -ItemType "file" -Value "There's an existing Open iT Client with same version ($ApplicationVersion).\nIgnoring installation initiated by Solution Template."
     exit
 }
