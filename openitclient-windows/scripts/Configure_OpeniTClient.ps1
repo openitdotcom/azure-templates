@@ -1,5 +1,5 @@
 Param(
-    [string] [Parameter(Mandatory = $true)] $ServerURI,
+    [string] $ServerURI = 'https://sample.server.com:443',
     [string] $StorageAccountName = 'clientinstaller',
     [string] $Container = 'openitclientinstaller',
     [string] $SasToken = '?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-07-15T10:35:28Z&st=2020-07-15T02:35:28Z&spr=https&sig=A8G4gvAiOPVp1MGwkTmQii5oVUhEViIta8grn0yDVWs%3D',
@@ -16,6 +16,7 @@ if (Test-Path "$Env:Temp\openit_install.log")
 function Get-Program-Version {
     [CmdletBinding()]
     Param(
+        
         [Parameter(Position = 0, Mandatory=$true, ValueFromPipeline = $true)]
         $Name
     )
