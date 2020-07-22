@@ -8,7 +8,7 @@
         "name": "existingOrNewVM",
         "type": "Microsoft.Common.OptionsGroup",
         "label": "Virtual Machine",
-        "defaultValue": "New",
+        "defaultValue": "Existing",
         "toolTip": "This will determine if will deploy new Virtual Machine or use the existing",
         "constraints": {
           "allowedValues": [
@@ -42,142 +42,231 @@
       {
         "name": "vmConfig",
         "label": "Virtual Machine Settings",
-        "subLabel": {
-          "preValidation": "Note: Fields on this step is hidden if you choose to deploy on an existing virtual machine"
-        },
         "elements": [
           {
-            "name": "adminUsername",
-            "type": "Microsoft.Compute.UserNameTextBox",
-            "label": "Username",
-            "toolTip": "Admin username for the virtual machine.",
-            "osPlatform": "Windows",
-            "visible": "[equals(basics('existingOrNewVM'), 'new')]",
-            "constraints": {
-              "required": true
+            "name": "fieldsHidden",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
+            "options": {
+              "text": "[if(equals(basics('existingOrNewVM'), 'new'), 'Define Basic Virtual Machine instance settings','Fields are hidden since your Open iT Client will be deployed on an existing Virtual Machine')]"
             }
           },
           {
-            "name": "adminPassword",
-            "type": "Microsoft.Compute.CredentialsCombo",
-            "visible": "[equals(basics('existingOrNewVM'), 'new')]",
-            "label": {
-              "password": "Password",
-              "confirmPassword": "Confirm password"
-            },
-            "toolTip": {
-              "password": "Admin password for the virtual machine."
-            },
-            "osPlatform": "Windows"
-          },
-          {
-            "name": "windowsOSVersion",
-            "type": "Microsoft.Common.DropDown",
-            "label": "Windows OS",
-            "defaultValue": "Desktop 10 Enterprise",
-            "toolTip": "The Windows OS of the virtual machine",
-            "constraints": {
-              "allowedValues": [
-                {
-                  "label": "Server 2019 Datacenter",
-                  "value": "Server 2019 Datacenter"
-                },
-                {
-                  "label": "Server 2016 Datacenter",
-                  "value": "Server 2016 Datacenter"
-                },
-                {
-                  "label": "Desktop 10 Enterprise",
-                  "value": "Desktop 10 Enterprise"
-                },
-                {
-                  "label": "Desktop 10 Enterprise N",
-                  "value": "Desktop 10 Enterprise N"
-                },
-                {
-                  "label": "Desktop 10 Pro",
-                  "value": "Desktop 10 Pro"
-                },
-                {
-                  "label": "Desktop 10 Pro N",
-                  "value": "Desktop 10 Pro N"
-                },
-                {
-                  "label": "Server 2012 Datacenter",
-                  "value": "Server 2012 Datacenter"
-                },
-                {
-                  "label": "Server 2012 Datacenter R2",
-                  "value": "Server 2012 Datacenter R2"
-                },
-                {
-                  "label": "Windows Server 2008 R2 Service Pack 1",
-                  "value": "Windows Server 2008 R2 Service Pack 1"
+            "name": "account",
+            "type": "Microsoft.Common.Section",
+            "label": "Administrator account",
+            "elements": [
+              {
+                "name": "adminUsername",
+                "type": "Microsoft.Compute.UserNameTextBox",
+                "label": "Username",
+                "toolTip": "Admin username for the virtual machine.",
+                "osPlatform": "Windows",
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]",
+                "constraints": {
+                  "required": true
                 }
-              ],
-              "required": true
-            },
-
+              },
+              {
+                "name": "adminPassword",
+                "type": "Microsoft.Compute.CredentialsCombo",
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]",
+                "label": {
+                  "password": "Password",
+                  "confirmPassword": "Confirm password"
+                },
+                "toolTip": {
+                  "password": "Admin password for the virtual machine."
+                },
+                "osPlatform": "Windows"
+              }
+            ],
             "visible": "[equals(basics('existingOrNewVM'), 'new')]"
           },
           {
-            "name": "vmSize",
-            "type": "Microsoft.Compute.SizeSelector",
-            "label": "Size",
-            "toolTip": "Size of the virtual machine.",
-            "recommendedSizes": ["Standard_D1", "Standard_D2", "Standard_D3"],
+            "name": "properties",
+            "type": "Microsoft.Common.Section",
+            "label": "Properties",
+            "elements": [
+              {
+                "name": "windowsOSVersion",
+                "type": "Microsoft.Common.DropDown",
+                "label": "Windows OS",
+                "defaultValue": "Desktop 10",
+                "toolTip": "The Windows OS of the virtual machine",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "Desktop 10",
+                      "value": "Desktop 10"
+                    },
+                    {
+                      "label": "Desktop 10 Pro",
+                      "value": "Desktop 10 Pro"
+                    },
+                    {
+                      "label": "Desktop 10 Pro N",
+                      "value": "Desktop 10 Pro N"
+                    },
+                    {
+                      "label": "Desktop 10 Enterprise",
+                      "value": "Desktop 10 Enterprise"
+                    },
+                    {
+                      "label": "Desktop 10 Enterprise N",
+                      "value": "Desktop 10 Enterprise N"
+                    },
+                    {
+                      "label": "Desktop 7",
+                      "value": "Desktop 7"
+                    },
+                    {
+                      "label": "Server 2019 Datacenter",
+                      "value": "Server 2019 Datacenter"
+                    },
+                    {
+                      "label": "Server 2016 Datacenter",
+                      "value": "Server 2016 Datacenter"
+                    },
+                    {
+                      "label": "Server 2012 Datacenter",
+                      "value": "Server 2012 Datacenter"
+                    },
+                    {
+                      "label": "Server 2012 Datacenter R2",
+                      "value": "Server 2012 Datacenter R2"
+                    },
+                    {
+                      "label": "Windows Server 2008 R2 Service Pack 1",
+                      "value": "Windows Server 2008 R2 Service Pack 1"
+                    }
+                  ],
+                  "required": true
+                },
+
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]"
+              },
+              {
+                "name": "vmSize",
+                "type": "Microsoft.Compute.SizeSelector",
+                "label": "Size",
+                "toolTip": "Size of the virtual machine.",
+                "recommendedSizes": [
+                  "Standard_D1",
+                  "Standard_D2",
+                  "Standard_D3"
+                ],
+                "options": {
+                  "hideDiskTypeFilter": false
+                },
+                "osPlatform": "Windows",
+                "imageReference": {
+                  "publisher": "MicrosoftWindowsServer",
+                  "offer": "WindowsServer",
+                  "sku": "2012-R2-Datacenter"
+                },
+                "count": 2,
+
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]"
+              },
+              {
+                "name": "bootDiagnostics",
+                "type": "Microsoft.Common.OptionsGroup",
+                "label": "Boot Diagnostics",
+                "defaultValue": "On",
+                "toolTip": "Enable boot diagnostics",
+                "constraints": {
+                  "allowedValues": [
+                    {
+                      "label": "On",
+                      "value": "on"
+                    },
+                    {
+                      "label": "Off",
+                      "value": "off"
+                    }
+                  ],
+                  "required": true
+                },
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]"
+              },
+              {
+                "name": "diagnosticStorageAccount",
+                "type": "Microsoft.Storage.StorageAccountSelector",
+                "visible": "[and(equals(basics('existingOrNewVM'), 'new'), equals(steps('vmConfig').properties.bootDiagnostics, 'on'))]",
+                "label": "Diagnostic storage account",
+                "toolTip": "Storage Account for the Virtual Machine's diagnostics",
+                "defaultValue": {
+                  "type": "Standard_LRS",
+                  "name": "[concat(replace(basics('virtualMachineName'), '-', ''), take(replace(guid(), '-', ''), 10))]"
+                },
+                "constraints": {
+                  "allowedTypes": ["Standard_LRS", "Standard_GRS"]
+                }
+              }
+            ],
+            "visible": "[equals(basics('existingOrNewVM'), 'new')]"
+          }
+        ]
+      },
+      {
+        "name": "networking",
+        "label": "Networking",
+        "elements": [
+          {
+            "name": "fieldsHidden",
+            "type": "Microsoft.Common.TextBlock",
+            "visible": true,
             "options": {
-              "hideDiskTypeFilter": false
-            },
-            "osPlatform": "Windows",
-            "imageReference": {
-              "publisher": "MicrosoftWindowsServer",
-              "offer": "WindowsServer",
-              "sku": "2012-R2-Datacenter"
-            },
-            "count": 2,
-
-            "visible": "[equals(basics('existingOrNewVM'), 'new')]"
-          },
-          {
-            "name": "storageAccount",
-            "type": "Microsoft.Storage.StorageAccountSelector",
-            "visible": "[equals(basics('existingOrNewVM'), 'new')]",
-            "label": "Diagnostic storage account",
-            "toolTip": "Storage Account for the Virtual Machine's diagnostics",
-            "defaultValue": {
-              "type": "Standard_LRS",
-              "name": "[concat(replace(basics('virtualMachineName'), '-', ''), take(replace(guid(), '-', ''), 10))]"
-            },
-            "constraints": {
-              "allowedTypes": ["Standard_LRS", "Standard_GRS"]
+              "text": "[if(equals(basics('existingOrNewVM'), 'new'), 'Define network connectivity for your virtual machine by configuring network interface card (NIC) settings. ','Fields are hidden since your Open iT Client will be deployed on an existing Virtual Machine')]"
             }
           },
           {
-            "name": "publicIpAddress",
-            "type": "Microsoft.Network.PublicIpAddressCombo",
+            "name": "networkLabel",
+            "type": "Microsoft.Common.TextBlock",
             "visible": "[equals(basics('existingOrNewVM'), 'new')]",
-            "label": {
-              "publicIpAddress": "Public IP Address for the VM",
-              "domainNameLabel": "DNS Prefix for the public IP Address"
-            },
-            "toolTip": {
-              "publicIpAddress": "Public IP Address for the VM",
-              "domainNameLabel": "DNS Prefix for the public IP Address, must be globally unique"
-            },
-            "defaultValue": {
-              "publicIpAddressName": "[concat(basics('virtualMachineName'), '-ip')]",
-              "domainNameLabel": "[concat(basics('virtualMachineName'), '-', take(replace(guid(), '-', ''), 10))]"
-            },
             "options": {
-              "hideExisting": false,
-              "hideNone": false
-            },
-            "constraints": {
-              "required": {
-                "domainNameLabel": true
+              "text": "You can control ports, inbound and outbound connectivity with security group rules, or place behind an existing load balancing solution.",
+              "link": {
+                "label": "Learn more",
+                "uri": "https://go.microsoft.com/fwlink/?linkid=2033964&clcid=0x409"
               }
             }
+          },
+          {
+            "name": "publicIP",
+            "type": "Microsoft.Common.Section",
+            "label": "Configure public IP",
+            "elements": [
+              {
+                "name": "publicIpAddress",
+                "type": "Microsoft.Network.PublicIpAddressCombo",
+                "visible": "[equals(basics('existingOrNewVM'), 'new')]",
+                "label": {
+                  "publicIpAddress": "Public IP Address for the VM",
+                  "domainNameLabel": "DNS Prefix for the public IP Address"
+                },
+                "toolTip": {
+                  "publicIpAddress": "Public IP Address for the VM",
+                  "domainNameLabel": "DNS Prefix for the public IP Address, must be globally unique"
+                },
+                "defaultValue": {
+                  "publicIpAddressName": "[concat(basics('virtualMachineName'), '-ip')]",
+                  "domainNameLabel": "[concat(basics('virtualMachineName'), '-', take(replace(guid(), '-', ''), 10))]"
+                },
+                "options": {
+                  "hideExisting": false,
+                  "hideNone": true,
+                  "hideDomainNameLabel": false
+                },
+                "constraints": {
+                  "required": {
+                    "domainNameLabel": true
+                  }
+                }
+              }
+            ],
+            "visible": "[equals(basics('existingOrNewVM'), 'new')]"
           },
           {
             "name": "virtualNetwork",
@@ -224,7 +313,7 @@
             "type": "Microsoft.Common.TextBox",
             "label": "OpeniT Server URI",
             "toolTip": "The Open iT Server URI is required to obtain the server details automatically",
-            "defaultValue": "https://openit2019.openitcloud.com:443",
+            "defaultValue": "https://sample.server.com:443",
             "constraints": {
               "required": true,
               "regex": "^https?://\\S+$",
@@ -238,20 +327,23 @@
       "location": "[location()]",
       "virtualMachineName": "[basics('virtualMachineName')]",
       "existingOrNewVM": "[basics('existingOrNewVM')]",
-      "adminUsername": "[steps('vmConfig').adminUsername]",
-      "adminPassword": "[steps('vmConfig').adminPassword.password]",
-      "windowsOSVersion": "[steps('vmConfig').windowsOSVersion]",
-      "vmSize": "[steps('vmConfig').vmSize]",
-      "storageAccountName": "[steps('vmConfig').storageAccount.name]",
-      "storageAccountType": "[steps('vmConfig').storageAccount.type]",
-      "addressPrefixes": "[steps('vmConfig').virtualNetwork.addressPrefixes]",
-      "subnetName": "[steps('vmConfig').virtualNetwork.subnets.subnet1.name]",
-      "subnetPrefix": "[steps('vmConfig').virtualNetwork.subnets.subnet1.addressPrefix]",
-      "virtualNetworkNewOrExisting": "[steps('vmConfig').virtualNetwork.newOrExisting]",
-      "virtualNetworkResourceGroup": "[steps('vmConfig').virtualNetwork.resourceGroup]",
-      "virtualNetworkName": "[steps('vmConfig').virtualNetwork.name]",
-      "publicIpAddressName": "[steps('vmConfig').publicIpAddress.name]",
-      "dnsLabelPrefix": "[steps('vmConfig').publicIpAddress.domainNameLabel]",
+      "adminUsername": "[steps('vmConfig').account.adminUsername]",
+      "adminPassword": "[steps('vmConfig').account.adminPassword.password]",
+      "windowsOSVersion": "[steps('vmConfig').properties.windowsOSVersion]",
+      "vmSize": "[steps('vmConfig').properties.vmSize]",
+      "bootDiagnostics": "[steps('vmConfig').properties.bootDiagnostics]",
+      "storageAccountName": "[steps('vmConfig').properties.diagnosticStorageAccount.name]",
+      "storageAccountNewOrExisting": "[steps('vmConfig').properties.diagnosticStorageAccount.newOrExisting]",
+      "storageAccountResourceGroup": "[steps('vmConfig').properties.diagnosticStorageAccount.resourceGroup]",
+      "storageAccountType": "[steps('vmConfig').properties.diagnosticStorageAccount.type]",
+      "addressPrefixes": "[steps('networking').virtualNetwork.addressPrefixes]",
+      "subnetName": "[steps('networking').virtualNetwork.subnets.subnet1.name]",
+      "subnetPrefix": "[steps('networking').virtualNetwork.subnets.subnet1.addressPrefix]",
+      "virtualNetworkNewOrExisting": "[steps('networking').virtualNetwork.newOrExisting]",
+      "virtualNetworkResourceGroup": "[steps('networking').virtualNetwork.resourceGroup]",
+      "virtualNetworkName": "[steps('networking').virtualNetwork.name]",
+      "publicIpAddressName": "[steps('networking').publicIP.publicIpAddress.name]",
+      "dnsLabelPrefix": "[steps('networking').publicIP.publicIpAddress.domainNameLabel]",
       "openitServerURI": "[steps('openitConfig').openiTServerURI]"
     }
   }

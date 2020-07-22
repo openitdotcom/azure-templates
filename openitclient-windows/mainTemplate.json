@@ -38,6 +38,8 @@
                 "Desktop 10 Enterprise",
                 "Desktop 10 Enterprise N",
                 "Desktop 10 Pro",
+                "Desktop 10",
+                "Desktop 7",
                 "Desktop 10 Pro N",
                 "Server 2012 Datacenter",
                 "Server 2012 Datacenter R2",
@@ -66,6 +68,27 @@
             "defaultValue": "[resourceGroup().location]",
             "metadata": {
                 "description": "Location for all resources."
+            }
+        },
+        "bootDiagnostics": {
+            "type": "string",
+            "defaultValue": "on",
+            "metadata": {
+                "description": "Identifier if will enable boot diagnostics on Virtual Machine"
+            }
+        },
+        "storageAccountResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "Name of the storage account's resource group"
+            }
+        },
+        "storageAccountNewOrExisting": {
+            "type": "string",
+            "defaultValue": "new",
+            "metadata": {
+                "description": "Will determine if the storage account is new or existing"
             }
         },
         "storageAccountName": {
@@ -142,8 +165,9 @@
         }
     },
     "variables": {
+        "storageAccountId": "[if(equals(parameters('storageAccountNewOrExisting'), 'new'), resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/',parameters('storageAccountResourceGroup'), '/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName')))]",
         "fakeVMName": "[concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id))]",
-        "nicName": "[concat(parameters('virtualMachineName'), '-nic', uniqueString(resourceGroup().id))]",
+        "nicName": "[if(equals(parameters('virtualMachineName'), 'new'), concat(parameters('virtualMachineName'), '-nic', uniqueString(resourceGroup().id)), concat('temp15', uniqueString(resourceGroup().id)))]",
         "vnetId": {
             "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
             "existing": "[resourceId(parameters('virtualNetworkResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]"
@@ -209,12 +233,24 @@
                 "offer": "WindowsServer",
                 "sku": "2012-Datacenter",
                 "version": "latest"
+            },
+            "Desktop 10": {
+                "publisher": "MicrosoftWindowsDesktop",
+                "offer": "Windows-10",
+                "sku": "20h1-pro",
+                "version": "latest"
+            },
+            "Desktop 7": {
+                "publisher": "microsoftwindowsdesktop",
+                "offer": "windows-7",
+                "sku": "win7-enterprise",
+                "version": "latest"
             }
         }
     },
     "resources": [
         {
-            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
+            "condition": "[and(equals(parameters('existingOrNewVM'),'new'), equals(parameters('bootDiagnostics'), 'on'))]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2018-11-01",
             "name": "[parameters('storageAccountName')]",
@@ -312,7 +348,7 @@
                     },
                     "dataDisks": [
                         {
-                            "diskSizeGB": 1023,
+                            "diskSizeGB": 128,
                             "lun": 0,
                             "createOption": "Empty"
                         }
@@ -327,8 +363,8 @@
                 },
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[if(equals(parameters('existingOrNewVM'), 'new'), reference(resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2018-11-01').primaryEndpoints.blob, '')]"
+                        "enabled": "[equals(parameters('bootDiagnostics'), 'on')]",
+                        "storageUri": "[if(and(equals(parameters('existingOrNewVM'), 'new'), equals(parameters('bootDiagnostics'), 'on')), reference(variables('storageAccountId'), '2018-11-01').primaryEndpoints.blob, '')]"
                     }
                 }
             }
