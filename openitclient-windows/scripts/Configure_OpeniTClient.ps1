@@ -20,11 +20,9 @@ function Get-Program-Version {
         [Parameter(Position = 0, Mandatory=$true, ValueFromPipeline = $true)]
         $Name
     )
-    $app = Get-ItemProperty -Path "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*" | 
-                Where-Object { $_.DisplayName -match $Name } | 
-                Select-Object DisplayName, DisplayVersion, InstallDate, Version
+    $app = Get-WmiObject -Class Win32_Product | where Name -eq "$Name"
     if ($app) {
-        return $app.DisplayVersion
+        return $app.Version
     }
 }
 
