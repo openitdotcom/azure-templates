@@ -24,7 +24,6 @@
         },
         "adminPassword": {
             "type": "securestring",
-            "defaultValue": "Pass123!Pass123!",
             "metadata": {
                 "description": "Password for the Virtual Machine."
             }
@@ -166,7 +165,7 @@
     },
     "variables": {
         "storageAccountId": "[if(equals(parameters('storageAccountNewOrExisting'), 'new'), resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/',parameters('storageAccountResourceGroup'), '/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName')))]",
-        "fakeVMName": "[concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id))]",
+        "vmName": "[if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id)))]",
         "nicName": "[if(equals(parameters('virtualMachineName'), 'new'), concat(parameters('virtualMachineName'), '-nic', uniqueString(resourceGroup().id)), concat('temp15', uniqueString(resourceGroup().id)))]",
         "vnetId": {
             "new": "[resourceId('Microsoft.Network/virtualNetworks',parameters('virtualNetworkName'))]",
@@ -176,7 +175,7 @@
         "openitInstallation": {
             "script": {
                 "filename": "Configure_OpeniTClient.ps1",
-                "location": "https://raw.githubusercontent.com/openitdotcom/azure-templates/master/openitclient-windows/scripts/Configure_OpeniTClient.ps1?token=AJKNMNN65I2WYYKPVV6GS527CVMRK"
+                "location": "https://raw.githubusercontent.com/openitdotcom/azure-templates/master/openitclient-windows/scripts/Configure_OpeniTClient.ps1"
             }
         },
         "imageReference": {
@@ -326,7 +325,7 @@
             "condition": "[equals(parameters('existingOrNewVM'),'new')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
-            "name": "[if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('fakeVMName'))]",
+            "name": "[variables('vmName')]",
             "location": "[parameters('location')]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
@@ -376,7 +375,7 @@
             "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient')]",
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), variables('fakeVMName')))]"
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
             ],
             "tags": {
                 "displayName": "config-openit"
@@ -391,8 +390,7 @@
                         "[variables('openitInstallation').script.location]"
                     ],
                     "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
-                },
-                "protectedSettings": {}
+                }
             }
         },
         {
@@ -400,7 +398,7 @@
             "apiVersion": "2019-07-01",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient_existing')]",
-            "location": "[resourceGroup().location]",
+            "location": "[parameters('location')]",
             "tags": {
                 "displayName": "config-openit"
             },
@@ -414,11 +412,21 @@
                         "[variables('openitInstallation').script.location]"
                     ],
                     "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
-                },
-                "protectedSettings": {}
+                }
+            }
+        },
+        {
+            "apiVersion": "2018-02-01",
+            "name": "pid-fe9d205e-8530-584b-b96a-2f27abe1c682",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": []
+                }
             }
         }
-    ],
-    "outputs": {
-    }
+    ]
 }

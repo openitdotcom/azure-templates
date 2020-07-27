@@ -26,6 +26,14 @@
         "visible": true
       },
       {
+        "name": "existingNewVMNote",
+        "type": "Microsoft.Common.TextBlock",
+        "visible": true,
+        "options": {
+          "text": "The 'New' option has limited custom configuration.\nIf you wish to deploy it on an existing instance you might want to deploy it through powershell script which supports deploying on multiple instance"
+        }
+      },
+      {
         "name": "virtualMachineName",
         "type": "Microsoft.Common.TextBox",
         "label": "Virtual Machine name",
