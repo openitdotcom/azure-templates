@@ -31,6 +31,8 @@ $currentVersion = Get-Program-Version "Open iT Client"
 
 if ($currentVersion -eq $ApplicationVersion) {
     & "$Env:Programfiles\OpeniT\Core\bin\openit_dcmlban.exe" -o "$Env:Programfiles\OpeniT\Core\Configuration\Components\apicontroller.xml" -y "apicontroller.uri" -v "$ServerURI" -a "set-value" -s
+    Stop-Service -Name "openitclient"
+    Start-Service -Name "openitclient"
     New-Item -Path  $Env:Temp -Name "openit_install.log" -ItemType "file" -Value "There's an existing Open iT Client with same version ($ApplicationVersion). Ignoring installation initiated by Solution Template. Changing the ServerURI with $ServerURI"
     exit
 }
