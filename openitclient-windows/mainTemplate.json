@@ -412,8 +412,7 @@
                         "[variables('openitInstallation').script.location]"
                     ],
                     "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
-                },
-                "protectedSettings": {}
+                }
             }
         },
         {
