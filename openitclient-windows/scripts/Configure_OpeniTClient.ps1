@@ -44,6 +44,7 @@ $powershellVersion = $PSVersionTable.PSVersion.Major
 if ($powershellVersion -ge "5") {
     # Install the NuGet Package Provider, preventing that trusting the PSGallery with the Set-PSRepository cmdlet would hang on user input.
     try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         Install-PackageProvider -Name NuGet -Scope CurrentUser -Force
         Write-Output 'Installed the NuGet Package Provider'
     }
