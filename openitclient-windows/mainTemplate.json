@@ -71,7 +71,7 @@
         },
         "bootDiagnostics": {
             "type": "string",
-            "defaultValue": "on",
+            "defaultValue": "off",
             "metadata": {
                 "description": "Identifier if will enable boot diagnostics on Virtual Machine"
             }
@@ -164,7 +164,6 @@
         }
     },
     "variables": {
-        "storageAccountId": "[if(equals(parameters('storageAccountNewOrExisting'), 'new'), resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), concat('/subscriptions/', subscription().subscriptionId, '/resourceGroups/',parameters('storageAccountResourceGroup'), '/providers/','Microsoft.Storage/storageAccounts/', parameters('storageAccountName')))]",
         "vmName": "[if(equals(parameters('existingOrNewVM'), 'new'), parameters('virtualMachineName'), concat(parameters('virtualMachineName'), uniqueString(resourceGroup().id)))]",
         "nicName": "[if(equals(parameters('virtualMachineName'), 'new'), concat(parameters('virtualMachineName'), '-nic', uniqueString(resourceGroup().id)), concat('temp15', uniqueString(resourceGroup().id)))]",
         "vnetId": {
@@ -248,6 +247,174 @@
         }
     },
     "resources": [
+
+        {
+            "condition": "[equals(parameters('bootDiagnostics'), 'on')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('storageAccountName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('storageAccountType')]"
+            },
+            "kind": "Storage"
+        },
+        {
+            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('dnsLabelPrefix')]"
+                }
+            }
+        },
+        {
+            "condition": "[and(equals(parameters('virtualNetworkNewOrExisting'),'new'), equals(parameters('existingOrNewVM'),'new'))]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('virtualNetworkName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefixes')[0]]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetName')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-11-01",
+            "name": "[variables('nicName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
+            "name": "[variables('vmName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": "[variables('imageReference')[parameters('windowsOSVersion')]]",
+                    "osDisk": {
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "diskSizeGB": 128,
+                            "lun": 0,
+                            "createOption": "Empty"
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "[equals(parameters('bootDiagnostics'), 'on')]",
+                        "storageUri": "[if(equals(parameters('bootDiagnostics'), 'on'), reference(resourceId(parameters('storageAccountResourceGroup') ,'Microsoft.Storage/storageAccounts/', parameters('storageAccountName')), '2018-11-01').primaryEndpoints.blob, '')]"
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
+            "apiVersion": "2019-07-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
+            ],
+            "tags": {
+                "displayName": "config-openit"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('openitInstallation').script.location]"
+                    ],
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
+                }
+            }
+        },
+        {
+            "condition": "[equals(parameters('existingOrNewVM'),'existing')]",
+            "apiVersion": "2019-07-01",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient_existing')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "config-openit"
+            },
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('openitInstallation').script.location]"
+                    ],
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
+                }
+            }
+        },
         {
             "apiVersion": "2018-02-01",
             "name": "pid-fe9d205e-8530-584b-b96a-2f27abe1c682",
@@ -257,175 +424,7 @@
                 "template": {
                     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
                     "contentVersion": "1.0.0.0",
-                    "resources": [
-                        {
-                            "condition": "[and(equals(parameters('existingOrNewVM'),'new'), equals(parameters('bootDiagnostics'), 'on'))]",
-                            "type": "Microsoft.Storage/storageAccounts",
-                            "apiVersion": "2018-11-01",
-                            "name": "[parameters('storageAccountName')]",
-                            "location": "[parameters('location')]",
-                            "sku": {
-                                "name": "[parameters('storageAccountType')]"
-                            },
-                            "kind": "Storage"
-                        },
-                        {
-                            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
-                            "type": "Microsoft.Network/publicIPAddresses",
-                            "apiVersion": "2018-11-01",
-                            "name": "[parameters('publicIPAddressName')]",
-                            "location": "[parameters('location')]",
-                            "properties": {
-                                "publicIPAllocationMethod": "Dynamic",
-                                "dnsSettings": {
-                                    "domainNameLabel": "[parameters('dnsLabelPrefix')]"
-                                }
-                            }
-                        },
-                        {
-                            "condition": "[and(equals(parameters('virtualNetworkNewOrExisting'),'new'), equals(parameters('existingOrNewVM'),'new'))]",
-                            "type": "Microsoft.Network/virtualNetworks",
-                            "apiVersion": "2018-11-01",
-                            "name": "[parameters('virtualNetworkName')]",
-                            "location": "[parameters('location')]",
-                            "properties": {
-                                "addressSpace": {
-                                    "addressPrefixes": [
-                                        "[parameters('addressPrefixes')[0]]"
-                                    ]
-                                },
-                                "subnets": [
-                                    {
-                                        "name": "[parameters('subnetName')]",
-                                        "properties": {
-                                            "addressPrefix": "[parameters('subnetPrefix')]"
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
-                            "type": "Microsoft.Network/networkInterfaces",
-                            "apiVersion": "2018-11-01",
-                            "name": "[variables('nicName')]",
-                            "location": "[parameters('location')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Network/publicIPAddresses/', parameters('publicIPAddressName'))]",
-                                "[resourceId('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-                            ],
-                            "properties": {
-                                "ipConfigurations": [
-                                    {
-                                        "name": "ipconfig1",
-                                        "properties": {
-                                            "privateIPAllocationMethod": "Dynamic",
-                                            "publicIPAddress": {
-                                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',parameters('publicIPAddressName'))]"
-                                            },
-                                            "subnet": {
-                                                "id": "[variables('subnetRef')]"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
-                        },
-                        {
-                            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
-                            "type": "Microsoft.Compute/virtualMachines",
-                            "apiVersion": "2018-10-01",
-                            "name": "[variables('vmName')]",
-                            "location": "[parameters('location')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
-                                "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
-                            ],
-                            "properties": {
-                                "hardwareProfile": {
-                                    "vmSize": "[parameters('vmSize')]"
-                                },
-                                "osProfile": {
-                                    "computerName": "[parameters('virtualMachineName')]",
-                                    "adminUsername": "[parameters('adminUsername')]",
-                                    "adminPassword": "[parameters('adminPassword')]"
-                                },
-                                "storageProfile": {
-                                    "imageReference": "[variables('imageReference')[parameters('windowsOSVersion')]]",
-                                    "osDisk": {
-                                        "createOption": "FromImage"
-                                    },
-                                    "dataDisks": [
-                                        {
-                                            "diskSizeGB": 128,
-                                            "lun": 0,
-                                            "createOption": "Empty"
-                                        }
-                                    ]
-                                },
-                                "networkProfile": {
-                                    "networkInterfaces": [
-                                        {
-                                            "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
-                                        }
-                                    ]
-                                },
-                                "diagnosticsProfile": {
-                                    "bootDiagnostics": {
-                                        "enabled": "[equals(parameters('bootDiagnostics'), 'on')]",
-                                        "storageUri": "[if(and(equals(parameters('existingOrNewVM'), 'new'), equals(parameters('bootDiagnostics'), 'on')), reference(variables('storageAccountId'), '2018-11-01').primaryEndpoints.blob, '')]"
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            "condition": "[equals(parameters('existingOrNewVM'),'new')]",
-                            "apiVersion": "2019-07-01",
-                            "type": "Microsoft.Compute/virtualMachines/extensions",
-                            "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient')]",
-                            "location": "[parameters('location')]",
-                            "dependsOn": [
-                                "[resourceId('Microsoft.Compute/virtualMachines', variables('vmName'))]"
-                            ],
-                            "tags": {
-                                "displayName": "config-openit"
-                            },
-                            "properties": {
-                                "publisher": "Microsoft.Compute",
-                                "type": "CustomScriptExtension",
-                                "typeHandlerVersion": "1.10",
-                                "autoUpgradeMinorVersion": true,
-                                "settings": {
-                                    "fileUris": [
-                                        "[variables('openitInstallation').script.location]"
-                                    ],
-                                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
-                                }
-                            }
-                        },
-                        {
-                            "condition": "[equals(parameters('existingOrNewVM'),'existing')]",
-                            "apiVersion": "2019-07-01",
-                            "type": "Microsoft.Compute/virtualMachines/extensions",
-                            "name": "[concat(parameters('virtualMachineName'),'/', 'Install_OpeniTClient_existing')]",
-                            "location": "[parameters('location')]",
-                            "tags": {
-                                "displayName": "config-openit"
-                            },
-                            "properties": {
-                                "publisher": "Microsoft.Compute",
-                                "type": "CustomScriptExtension",
-                                "typeHandlerVersion": "1.10",
-                                "autoUpgradeMinorVersion": true,
-                                "settings": {
-                                    "fileUris": [
-                                        "[variables('openitInstallation').script.location]"
-                                    ],
-                                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('openitInstallation').script.filename, ' -ServerURI ', parameters('openitServerURI'))]"
-                                }
-                            }
-                        }
-                    ]
+                    "resources": []
                 }
             }
         }
