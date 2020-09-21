@@ -3,7 +3,7 @@ Param(
     [string] $StorageAccountName = 'clientinstaller',
     [string] $Container = 'openitclientinstaller',
     [string] $SasToken = '?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-07-15T10:35:28Z&st=2020-07-15T02:35:28Z&spr=https&sig=A8G4gvAiOPVp1MGwkTmQii5oVUhEViIta8grn0yDVWs%3D',
-    [string] $ApplicationSetupFile = 'openit_9_6_30_client_windows_x64.msi',
+    [string] $ApplicationSetupFile = 'openit_9_6_33_client_windows_x64.msi',
     [string] $ApplicationArguments = '/S',
     [string] $ApplicationVersion = '9.6.30'
 )
