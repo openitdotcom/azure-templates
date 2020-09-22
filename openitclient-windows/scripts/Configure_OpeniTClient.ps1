@@ -2,7 +2,7 @@ Param(
     [string] $ServerURI = 'https://sample.server.com:443',
     [string] $StorageAccountName = 'clientinstaller',
     [string] $Container = 'openitclientinstaller',
-    [string] $SasToken = '?sv=2019-12-12&ss=b&srt=c&sp=rwdlacx&se=2020-09-22T13:30:15Z&st=2020-09-22T05:30:15Z&spr=https&sig=66TFTy02LZOcoq8O4zF5VgzNbDv8gXRUSBNnKvZ377I%3D',
+    [string] $SasToken = '?sv=2019-12-12&ss=b&srt=c&sp=rwdlacx&se=2021-07-15T15:57:07Z&st=2020-07-15T07:57:07Z&spr=https&sig=nMa6istTTAR4fxsdJdaSbmx6sgfHra%2BYXgELEwqwDGo%3D',
     [string] $ApplicationSetupFile = 'openit_9_6_36_client_windows_x64.msi',
     [string] $ApplicationArguments = '/S',
     [string] $ApplicationVersion = '9.6.36'
