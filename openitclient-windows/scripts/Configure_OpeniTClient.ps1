@@ -118,7 +118,7 @@ if ($powershellVersion -ge "5") {
 else {
     try {
         
-        Start-Process msiexec.exe -Wait -ArgumentList "/I https://privatebox.openit.com/67880d02f530b30df656b7f2226ed204/openit_9_6_30_client_windows_x64.msi SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
+        Start-Process msiexec.exe -Wait -ArgumentList "/I https://privatebox.openit.com/67880d02f530b30df656b7f2226ed204/openit_9_6_36_client_windows_x64.msi SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
         Write-Output 'Application installation completed.'
     }
     catch {
