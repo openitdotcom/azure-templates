@@ -39,9 +39,10 @@ if ($currentVersion -eq $ApplicationVersion) {
 
 $ErrorActionPreference = 'Stop'
 
-$powershellVersion = $PSVersionTable.PSVersion.Major
+$powershellVersionMajor = $PSVersionTable.PSVersion.Major
+$powershellVersionMinor = $PSVersionTable.PSVersion.Minor
 
-if ($powershellVersion -ge "5") {
+if (($powershellVersionMajor -ge "6") -or ($powershellVersionMajor -ge "5" -and $powershellVersionMinor -ge "1")) {
     # Install the NuGet Package Provider, preventing that trusting the PSGallery with the Set-PSRepository cmdlet would hang on user input.
     try {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -117,7 +118,7 @@ if ($powershellVersion -ge "5") {
 }
 else {
     try {
-        
+        Write-Output 'Powershell version is too low to handle Azure Blob Request.. downloading installer from a fallback site'
         Start-Process msiexec.exe -Wait -ArgumentList "/I https://privatebox.openit.com/67880d02f530b30df656b7f2226ed204/openit_9_6_36_client_windows_x64.msi SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
         Write-Output 'Application installation completed.'
     }
@@ -125,7 +126,3 @@ else {
         Write-Error "Failed to install application. Exception: $($_.Exception.Message)"
     }
 }
-
-
-    
-
