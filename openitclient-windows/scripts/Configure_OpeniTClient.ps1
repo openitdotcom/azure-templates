@@ -3,9 +3,9 @@ Param(
     [string] $StorageAccountName = 'clientinstaller',
     [string] $Container = 'openitclientinstaller',
     [string] $SasToken = '?sv=2019-12-12&ss=b&srt=sco&sp=rwdlacx&se=2021-07-15T03:04:12Z&st=2020-09-22T08:04:12Z&spr=https&sig=tMgvMG0kP42ClfH6RvaBpymV975XKDgWRcvSneRcFo4%3D',
-    [string] $ApplicationSetupFile = 'openit_9_6_36_client_windows_x64.msi',
+    [string] $ApplicationSetupFile = 'openit_9_6_38_client_windows_x64.msi',
     [string] $ApplicationArguments = '/S',
-    [string] $ApplicationVersion = '9.6.36'
+    [string] $ApplicationVersion = '9.6.38'
 )
 
 if (Test-Path "$Env:Temp\openit_install.log") 
@@ -119,7 +119,7 @@ if (($powershellVersionMajor -ge "6") -or ($powershellVersionMajor -ge "5" -and 
 else {
     try {
         Write-Output 'Powershell version is too low to handle Azure Blob Request.. downloading installer from a fallback site'
-        Start-Process msiexec.exe -Wait -ArgumentList "/I https://privatebox.openit.com/67880d02f530b30df656b7f2226ed204/openit_9_6_36_client_windows_x64.msi SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
+        Start-Process msiexec.exe -Wait -ArgumentList "/I https://privatebox.openit.com/67880d02f530b30df656b7f2226ed204/openit_9_6_38_client_windows_x64.msi SERVERURI=$SERVERURI /l*v $Env:Temp\openit_install.log /quiet"
         Write-Output 'Application installation completed.'
     }
     catch {
